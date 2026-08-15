@@ -3,7 +3,7 @@
 use embedded_hal_0_2::blocking::delay::DelayUs;
 use embedded_hal_0_2::digital::v2::OutputPin;
 
-const CLK_DELAY_CYCLES: u32 = 20;
+const CLK_DELAY_CYCLES: u32 = 10;
 
 pub struct Hub75<PINS> {
     data: [[(u8, u8, u8, u8, u8, u8); 64]; 16],
