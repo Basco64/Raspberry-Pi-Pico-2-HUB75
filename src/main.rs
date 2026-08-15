@@ -3,91 +3,89 @@
 
 use panic_halt as _;
 
-mod colors;
-mod fm6126a;
-mod hub75;
-mod init;
-mod tests;
-mod usb_serial;
-
 use rp235x_hal as hal;
 
-use colors::PALETTE;
-use hub75::{Hub75, Outputs};
-use tests::{gradient_test, random_frame, random_test, red_test, Rng};
-use usb_serial::UsbSerial;
+use core::fmt::Write;
+use heapless::String;
 
-#[unsafe(link_section = ".start_block")]
+use usb_device::{class_prelude::*, prelude::*};
+use usbd_serial::SerialPort;
+
+#[link_section = ".start_block"]
 #[used]
 pub static IMAGE_DEF: hal::block::ImageDef = hal::block::ImageDef::secure_exe();
 
-#[derive(Clone, Copy, PartialEq)]
-enum Mode {
-    RedTest,
-    GradientTest,
-    RandomTest,
-    RandomLoop,
-}
-
-fn apply_mode<PINS: Outputs>(display: &mut Hub75<PINS>, mode: Mode, rng: &mut Rng) {
-    match mode {
-        Mode::RedTest => red_test(display),
-        Mode::GradientTest => gradient_test(display),
-        Mode::RandomTest => random_test(display),
-        Mode::RandomLoop => random_frame(display, rng, &PALETTE),
-    }
-}
+const XTAL_FREQ_HZ: u32 = 12_000_000u32;
 
 #[hal::entry]
 fn main() -> ! {
-    let (mut display, mut timer, usb_bus) = init::init();
+    let mut pac = hal::pac::Peripherals::take().unwrap();
 
-    let mut usb = UsbSerial::new(usb_bus);
-    let mut line_buf: heapless::String<64> = heapless::String::new();
+    let mut watchdog = hal::Watchdog::new(pac.WATCHDOG);
 
-    let mut rng = Rng::new(0xDEADBEEF);
-    let mut mode = Mode::RandomLoop;
+    let clocks = hal::clocks::init_clocks_and_plls(
+        XTAL_FREQ_HZ,
+        pac.XOSC,
+        pac.CLOCKS,
+        pac.PLL_SYS,
+        pac.PLL_USB,
+        &mut pac.RESETS,
+        &mut watchdog,
+    )
+    .unwrap();
 
-    apply_mode(&mut display, mode, &mut rng);
-    let mut last_random_update = timer.get_counter().ticks();
+    let timer = hal::Timer::new_timer0(pac.TIMER0, &mut pac.RESETS, &clocks);
+
+    let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
+        pac.USB,
+        pac.USB_DPRAM,
+        clocks.usb_clock,
+        true,
+        &mut pac.RESETS,
+    ));
+
+    let mut serial = SerialPort::new(&usb_bus);
+
+    let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x16c0, 0x27dd))
+        .strings(&[StringDescriptors::default()
+            .manufacturer("Fake company")
+            .product("Serial port")
+            .serial_number("TEST")])
+        .unwrap()
+        .max_packet_size_0(64)
+        .unwrap()
+        .device_class(2)
+        .build();
+
+    let mut said_hello = false;
 
     loop {
-        display.output(&mut timer);
-
-        if let Some(line) = usb.poll_line(&mut line_buf) {
-            let cmd = line.trim();
-            let new_mode = match cmd {
-                "red_test" => Some(Mode::RedTest),
-                "gradient_test" => Some(Mode::GradientTest),
-                "random_test" => Some(Mode::RandomTest),
-                "random_loop" => Some(Mode::RandomLoop),
-                _ => None,
-            };
-
-            match new_mode {
-                Some(m) => {
-                    mode = m;
-                    apply_mode(&mut display, mode, &mut rng);
-                    last_random_update = timer.get_counter().ticks();
-                    usb.print("-> ");
-                    usb.print(cmd);
-                    usb.print("\r\n");
-                }
-                None => {
-                    usb.print("commande inconnue: ");
-                    usb.print(cmd);
-                    usb.print(
-                        "\r\nattendu: red_test / gradient_test / random_test / random_loop\r\n",
-                    );
-                }
-            }
+        if !said_hello && timer.get_counter().ticks() >= 2_000_000 {
+            said_hello = true;
+            let _ = serial.write(b"Hello, World!\r\n");
+            let time = timer.get_counter().ticks();
+            let mut text: String<64> = String::new();
+            writeln!(&mut text, "Current timer ticks: {time}").unwrap();
+            let _ = serial.write(text.as_bytes());
         }
 
-        if mode == Mode::RandomLoop {
-            let now = timer.get_counter().ticks();
-            if now.wrapping_sub(last_random_update) >= 5_000 {
-                random_frame(&mut display, &mut rng, &PALETTE);
-                last_random_update = now;
+        if usb_dev.poll(&mut [&mut serial]) {
+            let mut buf = [0u8; 64];
+            match serial.read(&mut buf) {
+                Err(_e) => {}
+                Ok(0) => {}
+                Ok(count) => {
+                    buf.iter_mut().take(count).for_each(|b| {
+                        b.make_ascii_uppercase();
+                    });
+                    let mut wr_ptr = &buf[..count];
+                    while !wr_ptr.is_empty() {
+                        match serial.write(wr_ptr) {
+                            Ok(len) => wr_ptr = &wr_ptr[len..],
+                            Err(_) => break,
+                        };
+                    }
+                }
             }
         }
     }
