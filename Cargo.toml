@@ -13,3 +13,7 @@ rp235x-hal = { version = "0.4.0", features = ["binary-info", "critical-section-i
 
 embedded-graphics = "0.5.2"
 embedded_hal_0_2 = { package = "embedded-hal", version = "0.2.5" }
+
+usb-device = "0.3.2"
+usbd-serial = "0.2.2"
+heapless = "0.8.0"

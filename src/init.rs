@@ -1,9 +1,12 @@
 use rp235x_hal as hal;
+use usb_device::bus::UsbBusAllocator;
 
 use crate::fm6126a::fm6126a_init;
 use crate::hub75::Hub75;
 
 const XTAL_FREQ_HZ: u32 = 12_000_000;
+
+static mut USB_BUS: Option<UsbBusAllocator<hal::usb::UsbBus>> = None;
 
 pub fn init() -> (
     Hub75<(
@@ -22,6 +25,7 @@ pub fn init() -> (
         hal::gpio::Pin<hal::gpio::bank0::Gpio13, hal::gpio::FunctionSioOutput, hal::gpio::PullDown>,
     )>,
     hal::Timer<hal::timer::CopyableTimer0>,
+    &'static UsbBusAllocator<hal::usb::UsbBus>,
 ) {
     let mut pac = hal::pac::Peripherals::take().unwrap();
 
@@ -40,6 +44,20 @@ pub fn init() -> (
     .unwrap();
 
     let timer = hal::Timer::new_timer0(pac.TIMER0, &mut pac.RESETS, &clocks);
+
+    let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
+        pac.USB,
+        pac.USB_DPRAM,
+        clocks.usb_clock,
+        true,
+        &mut pac.RESETS,
+    ));
+
+    let usb_bus_ref: &'static UsbBusAllocator<hal::usb::UsbBus> = unsafe {
+        USB_BUS = Some(usb_bus);
+        #[allow(static_mut_refs)]
+        USB_BUS.as_ref().unwrap()
+    };
 
     let sio = hal::Sio::new(pac.SIO);
 
@@ -80,5 +98,5 @@ pub fn init() -> (
 
     display.clear();
 
-    (display, timer)
+    (display, timer, usb_bus_ref)
 }

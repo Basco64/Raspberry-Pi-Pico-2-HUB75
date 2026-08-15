@@ -1,0 +1,18 @@
+Sur windows, pour lire avec picotool sur WSL
+
+usbipd attach --wsl --busid 1-9
+
+puis
+
+pour le C
+
+cd /home/basco/projects/Pico/RGB-Matrix-Px-xx/example/Rasberry-Pi-Pico/Pico-SDK-2.2.0
+sudo picotool load -u -v -x build/hub75.uf2
+
+pour le Rust
+
+cd /home/basco/projects/Pico/pico-wall
+cargo build --release
+sudo picotool load -u -v -x -t elf target/thumbv8m.main-none-eabihf/release/pico-wall
+
+usbipd detach --wsl --busid 1-9

@@ -23,9 +23,12 @@ pub fn red_test<PINS: Outputs>(display: &mut Hub75<PINS>) {
 // TEST RANDOM
 // ============================================================
 
-struct Rng(u32);
+pub struct Rng(u32);
 
 impl Rng {
+    pub fn new(seed: u32) -> Self {
+        Self(if seed == 0 { 0xDEADBEEF } else { seed })
+    }
     fn next(&mut self) -> u32 {
         self.0 ^= self.0 << 13;
         self.0 ^= self.0 >> 17;
@@ -33,7 +36,7 @@ impl Rng {
         self.0
     }
 
-    fn next_color(&mut self, palette: &[Rgb565]) -> Rgb565 {
+    pub fn next_color(&mut self, palette: &[Rgb565]) -> Rgb565 {
         let idx = (self.next() as usize) % palette.len();
         palette[idx]
     }
@@ -81,7 +84,7 @@ pub fn gradient_test<PINS: Outputs>(display: &mut Hub75<PINS>) {
 // FRAME RANDOM
 // ============================================================
 
-fn random_frame<PINS: Outputs>(display: &mut Hub75<PINS>, rng: &mut Rng, palette: &[Rgb565]) {
+pub fn random_frame<PINS: Outputs>(display: &mut Hub75<PINS>, rng: &mut Rng, palette: &[Rgb565]) {
     display.clear();
 
     for y in 0u32..32 {

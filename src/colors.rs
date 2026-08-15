@@ -1,15 +1,22 @@
 use embedded_graphics::pixelcolor::Rgb565;
 
+/// Luminosité globale : 255 = pleine puissance, ajustez selon vos goûts
+pub const BRIGHTNESS: u8 = 150;
+
 /// Convertit du RGB888 (0-255 par canal) vers RGB565, en `const fn`
 /// pour pouvoir définir des constantes de couleur calculées à la compilation.
 pub const fn rgb565(r: u8, g: u8, b: u8) -> Rgb565 {
+    let r = ((r as u16 * BRIGHTNESS as u16) / 255) as u8;
+    let g = ((g as u16 * BRIGHTNESS as u16) / 255) as u8;
+    let b = ((b as u16 * BRIGHTNESS as u16) / 255) as u8;
+
     let r5 = (r as u16) >> 3;
     let g6 = (g as u16) >> 2;
     let b5 = (b as u16) >> 3;
     Rgb565((r5 << 11) | (g6 << 5) | b5)
 }
 
-// --- Couleurs de base ---
+// --- Couleurs de base ---<
 pub const BLACK: Rgb565 = rgb565(0, 0, 0);
 pub const WHITE: Rgb565 = rgb565(255, 255, 255);
 pub const RED: Rgb565 = rgb565(255, 0, 0);
@@ -45,3 +52,7 @@ pub const SKY_BLUE: Rgb565 = rgb565(135, 206, 235);
 pub const FOREST_GREEN: Rgb565 = rgb565(34, 139, 34);
 pub const HOT_PINK: Rgb565 = rgb565(255, 105, 180);
 pub const AMBER: Rgb565 = rgb565(255, 191, 0);
+
+pub const PALETTE: [Rgb565; 11] = [
+    RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA, ORANGE, PURPLE, PINK, NAVY, CORAL,
+];
