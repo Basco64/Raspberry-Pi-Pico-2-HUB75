@@ -1,0 +1,15 @@
+[package]
+name = "pico-wall"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+cortex-m = "0.7.2"
+cortex-m-rt = "0.7"
+critical-section = "1.2.0"
+panic-halt = "0.2.0"
+rp235x-hal = { version = "0.4.0", features = ["binary-info", "critical-section-impl", "rt"] }
+
+embedded-graphics = "0.5.2"
+embedded_hal_0_2 = { package = "embedded-hal", version = "0.2.5" }
