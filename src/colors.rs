@@ -1,10 +1,8 @@
 use embedded_graphics::pixelcolor::Rgb565;
 
-/// Luminosité globale : 255 = pleine puissance, ajustez selon vos goûts
+/// Luminosité globale : 255 = pleine puissance
 pub const BRIGHTNESS: u8 = 140;
 
-/// Convertit du RGB888 (0-255 par canal) vers RGB565, en `const fn`
-/// pour pouvoir définir des constantes de couleur calculées à la compilation.
 pub const fn rgb565(r: u8, g: u8, b: u8) -> Rgb565 {
     let r = ((r as u16 * BRIGHTNESS as u16) / 255) as u8;
     let g = ((g as u16 * BRIGHTNESS as u16) / 255) as u8;

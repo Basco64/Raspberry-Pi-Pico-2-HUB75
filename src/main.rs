@@ -4,6 +4,7 @@
 use panic_halt as _;
 
 mod colors;
+mod flags;
 mod fm6126a;
 mod hub75;
 mod init;
@@ -13,8 +14,9 @@ mod usb_serial;
 use rp235x_hal as hal;
 
 use colors::PALETTE;
+use flags::basque_flag;
 use hub75::{Hub75, Outputs};
-use tests::{basque_flag_test, gradient_test, random_frame, random_test, red_test, Rng};
+use tests::{gradient_test, random_frame, random_test, red_test, Rng};
 
 #[unsafe(link_section = ".start_block")]
 #[used]
@@ -52,8 +54,6 @@ fn main() -> ! {
     let mut last_random_update = timer.get_counter().ticks();
 
     loop {
-        // Le panneau doit être rafraîchi en continu, sinon il clignote/s'éteint.
-        // Maintenant sans risque pour l'USB, qui tourne sur interruption.
         display.output(&mut timer);
 
         if let Some(line) = usb_serial::poll_line(&mut line_buf) {
@@ -88,7 +88,7 @@ fn main() -> ! {
         if mode == Mode::RandomLoop {
             let now = timer.get_counter().ticks();
             if now.wrapping_sub(last_random_update) >= 5_000 {
-                basque_flag_test(&mut display);
+                basque_flag(&mut display);
                 last_random_update = now;
             }
         }
