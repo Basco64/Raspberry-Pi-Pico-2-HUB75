@@ -124,6 +124,32 @@ pub fn random_loop_test<PINS: Outputs>(
 }
 
 // ============================================================
+// ANIMATION -- bruit aléatoire qui se redessine toutes les 5ms
+// ============================================================
+
+pub struct RandomLoop {
+    rng: Rng,
+}
+
+impl RandomLoop {
+    pub fn new(seed: u32) -> Self {
+        Self {
+            rng: Rng::new(seed),
+        }
+    }
+
+    pub fn step_us(&self) -> u64 {
+        5_000
+    }
+}
+
+impl<PINS: Outputs> crate::animation::Animation<PINS> for RandomLoop {
+    fn tick(&mut self, display: &mut Hub75<PINS>) {
+        random_frame(display, &mut self.rng, &PALETTE);
+    }
+}
+
+// ============================================================
 // DISPATCH
 // ============================================================
 
