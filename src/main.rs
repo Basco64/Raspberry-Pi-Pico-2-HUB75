@@ -14,9 +14,9 @@ mod usb_serial;
 use rp235x_hal as hal;
 
 use colors::PALETTE;
-use flags::basque_flag;
+use flags::*;
 use hub75::{Hub75, Outputs};
-use tests::{gradient_test, random_frame, random_test, red_test, Rng};
+use tests::*;
 
 #[unsafe(link_section = ".start_block")]
 #[used]
