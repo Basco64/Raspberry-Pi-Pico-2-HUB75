@@ -286,3 +286,14 @@ footer {
 footer a {
   color: var(--text-dim);
 }
+
+#basco {
+  color: inherit;
+  text-decoration: none;
+  cursor: default;
+}
+
+#basco:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}

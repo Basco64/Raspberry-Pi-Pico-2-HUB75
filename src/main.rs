@@ -28,6 +28,7 @@ enum Mode {
     GradientTest,
     RandomTest,
     RandomLoop,
+    BasqueFlag,
 }
 
 fn apply_mode<PINS: Outputs>(display: &mut Hub75<PINS>, mode: Mode, rng: &mut Rng) {
@@ -36,6 +37,7 @@ fn apply_mode<PINS: Outputs>(display: &mut Hub75<PINS>, mode: Mode, rng: &mut Rn
         Mode::GradientTest => gradient_test(display),
         Mode::RandomTest => random_test(display),
         Mode::RandomLoop => random_frame(display, rng, &PALETTE),
+        Mode::BasqueFlag => basque_flag(display),
     }
 }
 
@@ -63,6 +65,7 @@ fn main() -> ! {
                 "gradient_test" => Some(Mode::GradientTest),
                 "random_test" => Some(Mode::RandomTest),
                 "random_loop" => Some(Mode::RandomLoop),
+                "flag_basque" => Some(Mode::BasqueFlag),
                 _ => None,
             };
 
@@ -78,9 +81,7 @@ fn main() -> ! {
                 None => {
                     usb_serial::print("commande inconnue: ");
                     usb_serial::print(cmd);
-                    usb_serial::print(
-                        "\r\nattendu: red_test / gradient_test / random_test / random_loop\r\n",
-                    );
+                    usb_serial::print("\r\n");
                 }
             }
         }
@@ -88,7 +89,7 @@ fn main() -> ! {
         if mode == Mode::RandomLoop {
             let now = timer.get_counter().ticks();
             if now.wrapping_sub(last_random_update) >= 5_000 {
-                basque_flag(&mut display);
+                random_frame(&mut display, &mut rng, &PALETTE);
                 last_random_update = now;
             }
         }

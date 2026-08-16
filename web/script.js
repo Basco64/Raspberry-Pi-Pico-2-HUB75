@@ -13,7 +13,7 @@ const CATEGORIES = [
       {
         id: "random_loop",
         label: "random_loop",
-        sub: "bruit multicolore, boucle 5s",
+        sub: "bruit multicolore, boucle 5ms",
         color: "#3b8bff",
       },
     ],

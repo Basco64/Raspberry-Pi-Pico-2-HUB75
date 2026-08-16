@@ -1,7 +1,7 @@
 use embedded_graphics::pixelcolor::Rgb565;
 
 /// Luminosité globale : 255 = pleine puissance
-pub const BRIGHTNESS: u8 = 140;
+pub const BRIGHTNESS: u8 = 210;
 
 pub const fn rgb565(r: u8, g: u8, b: u8) -> Rgb565 {
     let r = ((r as u16 * BRIGHTNESS as u16) / 255) as u8;
@@ -14,27 +14,20 @@ pub const fn rgb565(r: u8, g: u8, b: u8) -> Rgb565 {
     Rgb565((r5 << 11) | (g6 << 5) | b5)
 }
 
-// --- Couleurs de base ---<
 pub const BLACK: Rgb565 = rgb565(0, 0, 0);
 pub const WHITE: Rgb565 = rgb565(255, 255, 255);
 pub const RED: Rgb565 = rgb565(255, 0, 0);
 pub const GREEN: Rgb565 = rgb565(0, 255, 0);
 pub const BLUE: Rgb565 = rgb565(0, 0, 255);
-
-// --- Secondaires ---
 pub const YELLOW: Rgb565 = rgb565(255, 255, 0);
 pub const CYAN: Rgb565 = rgb565(0, 255, 255);
 pub const MAGENTA: Rgb565 = rgb565(255, 0, 255);
 pub const ORANGE: Rgb565 = rgb565(255, 165, 0);
 pub const PURPLE: Rgb565 = rgb565(128, 0, 128);
 pub const PINK: Rgb565 = rgb565(255, 105, 180);
-
-// --- Tons de gris ---
 pub const GRAY: Rgb565 = rgb565(128, 128, 128);
 pub const LIGHT_GRAY: Rgb565 = rgb565(200, 200, 200);
 pub const DARK_GRAY: Rgb565 = rgb565(64, 64, 64);
-
-// --- Autres teintes utiles ---
 pub const BROWN: Rgb565 = rgb565(139, 69, 19);
 pub const GOLD: Rgb565 = rgb565(255, 215, 0);
 pub const SILVER: Rgb565 = rgb565(192, 192, 192);

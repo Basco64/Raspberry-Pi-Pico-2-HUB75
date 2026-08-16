@@ -76,7 +76,7 @@ pub fn init() -> (
 
     fm6126a_init(&mut pins);
 
-    let mut display = Hub75::new(pins, 3);
+    let mut display = Hub75::new(pins, 4);
     display.clear();
 
     let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(

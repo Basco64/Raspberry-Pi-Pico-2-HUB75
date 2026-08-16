@@ -4,6 +4,7 @@ use embedded_hal_0_2::blocking::delay::DelayUs;
 use embedded_hal_0_2::digital::v2::OutputPin;
 
 const CLK_DELAY_CYCLES: u32 = 15;
+const GLOBAL_DIM_BLANK_US: u32 = 400;
 
 pub struct Hub75<PINS> {
     data: [[(u8, u8, u8, u8, u8, u8); 64]; 16],
@@ -197,6 +198,12 @@ impl<PINS: Outputs> Hub75<PINS> {
             }
         }
         self.pins.oe().set_high().ok();
+        let mut remaining = GLOBAL_DIM_BLANK_US;
+        while remaining > 0 {
+            let chunk = remaining.min(255) as u8;
+            delay.delay_us(chunk);
+            remaining -= chunk as u32;
+        }
     }
 
     pub fn clear(&mut self) {
