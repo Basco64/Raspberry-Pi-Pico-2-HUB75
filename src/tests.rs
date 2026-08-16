@@ -97,7 +97,7 @@ pub fn random_frame<PINS: Outputs>(display: &mut Hub75<PINS>, rng: &mut Rng, pal
 }
 
 // ============================================================
-// RANDOM QUI CHANGE TOUTES LES 5 SECONDES
+// RANDOM QUI CHANGE TOUTES LES 5 MS
 // ============================================================
 
 pub fn random_loop_test<PINS: Outputs>(
@@ -120,5 +120,27 @@ pub fn random_loop_test<PINS: Outputs>(
 
             last_update = now;
         }
+    }
+}
+
+// ============================================================
+// DISPATCH
+// ============================================================
+
+pub fn dispatch<PINS: Outputs>(cmd: &str, display: &mut Hub75<PINS>) -> bool {
+    match cmd {
+        "red_test" => {
+            red_test(display);
+            true
+        }
+        "gradient_test" => {
+            gradient_test(display);
+            true
+        }
+        "random_test" => {
+            random_test(display);
+            true
+        }
+        _ => false,
     }
 }

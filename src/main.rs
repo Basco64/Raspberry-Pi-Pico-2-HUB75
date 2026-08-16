@@ -14,32 +14,11 @@ mod usb_serial;
 use rp235x_hal as hal;
 
 use colors::PALETTE;
-use flags::*;
-use hub75::{Hub75, Outputs};
-use tests::*;
+use tests::Rng;
 
 #[unsafe(link_section = ".start_block")]
 #[used]
 pub static IMAGE_DEF: hal::block::ImageDef = hal::block::ImageDef::secure_exe();
-
-#[derive(Clone, Copy, PartialEq)]
-enum Mode {
-    RedTest,
-    GradientTest,
-    RandomTest,
-    RandomLoop,
-    BasqueFlag,
-}
-
-fn apply_mode<PINS: Outputs>(display: &mut Hub75<PINS>, mode: Mode, rng: &mut Rng) {
-    match mode {
-        Mode::RedTest => red_test(display),
-        Mode::GradientTest => gradient_test(display),
-        Mode::RandomTest => random_test(display),
-        Mode::RandomLoop => random_frame(display, rng, &PALETTE),
-        Mode::BasqueFlag => basque_flag(display),
-    }
-}
 
 #[hal::entry]
 fn main() -> ! {
@@ -48,11 +27,11 @@ fn main() -> ! {
     usb_serial::init_usb(usb_bus);
 
     let mut line_buf: heapless::String<64> = heapless::String::new();
-
     let mut rng = Rng::new(0xDEADBEEF);
-    let mut mode = Mode::RandomLoop;
 
-    apply_mode(&mut display, mode, &mut rng);
+    // Mode par défaut au démarrage : bruit aléatoire en boucle
+    let mut random_loop_active = true;
+    tests::random_frame(&mut display, &mut rng, &PALETTE);
     let mut last_random_update = timer.get_counter().ticks();
 
     loop {
@@ -60,25 +39,23 @@ fn main() -> ! {
 
         if let Some(line) = usb_serial::poll_line(&mut line_buf) {
             let cmd = line.trim();
-            let new_mode = match cmd {
-                "red_test" => Some(Mode::RedTest),
-                "gradient_test" => Some(Mode::GradientTest),
-                "random_test" => Some(Mode::RandomTest),
-                "random_loop" => Some(Mode::RandomLoop),
-                "flag_basque" => Some(Mode::BasqueFlag),
-                _ => None,
-            };
 
-            match new_mode {
-                Some(m) => {
-                    mode = m;
-                    apply_mode(&mut display, mode, &mut rng);
-                    last_random_update = timer.get_counter().ticks();
+            if cmd == "random_loop" {
+                random_loop_active = true;
+                tests::random_frame(&mut display, &mut rng, &PALETTE);
+                last_random_update = timer.get_counter().ticks();
+                usb_serial::print("-> random_loop\r\n");
+            } else {
+                // pour add une catégorie, add juste `|| nouveau_module::dispatch(cmd, &mut display)`
+                let handled =
+                    tests::dispatch(cmd, &mut display) || flags::dispatch(cmd, &mut display);
+
+                if handled {
+                    random_loop_active = false;
                     usb_serial::print("-> ");
                     usb_serial::print(cmd);
                     usb_serial::print("\r\n");
-                }
-                None => {
+                } else {
                     usb_serial::print("commande inconnue: ");
                     usb_serial::print(cmd);
                     usb_serial::print("\r\n");
@@ -86,10 +63,10 @@ fn main() -> ! {
             }
         }
 
-        if mode == Mode::RandomLoop {
+        if random_loop_active {
             let now = timer.get_counter().ticks();
             if now.wrapping_sub(last_random_update) >= 5_000 {
-                random_frame(&mut display, &mut rng, &PALETTE);
+                tests::random_frame(&mut display, &mut rng, &PALETTE);
                 last_random_update = now;
             }
         }

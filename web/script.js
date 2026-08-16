@@ -1,64 +1,47 @@
-const CATEGORIES = [
-  {
-    name: "Tests",
-    items: [
-      { id: "red_test", label: "red_test", sub: "aplat rouge plein", color: "#ff3b3b" },
-      { id: "gradient_test", label: "gradient_test", sub: "rampe rouge / vert", color: "#35e07a" },
-      {
-        id: "random_test",
-        label: "random_test",
-        sub: "bruit multicolore, image fixe",
-        color: "#b06bff",
-      },
-      {
-        id: "random_loop",
-        label: "random_loop",
-        sub: "bruit multicolore, boucle 5ms",
-        color: "#3b8bff",
-      },
-    ],
-  },
-  {
-    name: "Drapeaux",
-    items: [{ id: "flag_basque", label: "Ikurriña", sub: "drapeau basque", color: "#e30613" }],
-  },
-];
-
-// ---------- construire les catégories + cartes ----------
 const categoriesEl = document.getElementById("categories");
 
-CATEGORIES.forEach((cat, catIndex) => {
-  const details = document.createElement("details");
-  details.className = "category";
-  if (catIndex === 0) details.open = true; // première catégorie ouverte par défaut
+function buildCategories(categories) {
+  categories.forEach((cat, catIndex) => {
+    const details = document.createElement("details");
+    details.className = "category";
+    if (catIndex === 0) details.open = true;
 
-  const summary = document.createElement("summary");
-  summary.innerHTML = `<span>${cat.name}</span><span class="count">${cat.items.length}</span>`;
-  details.appendChild(summary);
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span>${cat.name}</span><span class="count">${cat.items.length}</span>`;
+    details.appendChild(summary);
 
-  const grid = document.createElement("div");
-  grid.className = "patterns";
+    const grid = document.createElement("div");
+    grid.className = "patterns";
 
-  cat.items.forEach((p) => {
-    const btn = document.createElement("button");
-    btn.className = "pattern-card";
-    btn.style.setProperty("--accent", p.color);
-    btn.disabled = true;
-    btn.dataset.id = p.id;
-    btn.innerHTML = `
-      <div class="swatch" style="background:${p.color}"></div>
-      <div class="pattern-name">${p.label}</div>
-      <div class="pattern-key mono">${p.sub}</div>
-    `;
-    btn.addEventListener("click", () => sendCommand(p));
-    grid.appendChild(btn);
+    cat.items.forEach((p) => {
+      const btn = document.createElement("button");
+      btn.className = "pattern-card";
+      btn.style.setProperty("--accent", p.color);
+      btn.disabled = true;
+      btn.dataset.id = p.id;
+      btn.innerHTML = `
+        <div class="swatch" style="background:${p.color}"></div>
+        <div class="pattern-name">${p.label}</div>
+        <div class="pattern-key mono">${p.sub}</div>
+      `;
+      btn.addEventListener("click", () => sendCommand(p));
+      grid.appendChild(btn);
+    });
+
+    details.appendChild(grid);
+    categoriesEl.appendChild(details);
+  });
+}
+
+fetch("./patterns.json")
+  .then((res) => res.json())
+  .then((data) => buildCategories(data.categories))
+  .catch((err) => {
+    console.error("Impossible de charger patterns.json:", err);
+    categoriesEl.innerHTML =
+      '<p class="mono" style="color:var(--text-dim)">Erreur de chargement de la liste des motifs.</p>';
   });
 
-  details.appendChild(grid);
-  categoriesEl.appendChild(details);
-});
-
-// ---------- état série ----------
 let port = null;
 let writer = null;
 let reader = null;
