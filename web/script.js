@@ -24,28 +24,6 @@ const CATEGORIES = [
   },
 ];
 
-// ---------- construire la grille de la maquette (64x32) ----------
-const matrixEl = document.getElementById("matrix");
-const cells = [];
-for (let i = 0; i < 64 * 32; i++) {
-  const c = document.createElement("div");
-  c.className = "cell";
-  matrixEl.appendChild(c);
-  cells.push(c);
-}
-
-function paintMatrix(colorHex) {
-  cells.forEach((c) => {
-    if (!colorHex) {
-      c.style.background = "#1b1d22";
-      return;
-    }
-    const flicker = Math.random() > 0.15;
-    c.style.background = flicker ? colorHex : "#1b1d22";
-  });
-}
-paintMatrix(null);
-
 // ---------- construire les catégories + cartes ----------
 const categoriesEl = document.getElementById("categories");
 
@@ -90,7 +68,6 @@ const statusEl = document.getElementById("status");
 const statusTextEl = document.getElementById("status-text");
 const connectBtn = document.getElementById("connect-btn");
 const consoleEl = document.getElementById("console");
-const heroModeEl = document.getElementById("hero-mode");
 
 function log(text, cls) {
   const line = document.createElement("div");
@@ -106,8 +83,6 @@ function setConnected(isConnected, label) {
   connectBtn.textContent = isConnected ? "Déconnecter" : "Connecter le Pico";
   document.querySelectorAll(".pattern-card").forEach((b) => (b.disabled = !isConnected));
   if (!isConnected) {
-    paintMatrix(null);
-    heroModeEl.textContent = "en attente";
     document.querySelectorAll(".pattern-card").forEach((b) => b.classList.remove("active"));
   }
 }
@@ -190,8 +165,6 @@ async function sendCommand(pattern) {
   document
     .querySelectorAll(".pattern-card")
     .forEach((b) => b.classList.toggle("active", b.dataset.id === pattern.id));
-  heroModeEl.textContent = pattern.label.toLowerCase();
-  paintMatrix(pattern.color);
 }
 
 connectBtn.addEventListener("click", () => {
