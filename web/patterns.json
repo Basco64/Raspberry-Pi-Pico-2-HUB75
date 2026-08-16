@@ -21,7 +21,32 @@
           "label": "random_loop",
           "sub": "bruit multicolore, boucle 5s",
           "color": "#3b8bff"
+        },
+        {
+          "id": "pacman",
+          "label": "pacman",
+          "sub": "traverse l'écran en boucle",
+          "color": "#ffd23d"
         }
+      ]
+    },
+    {
+      "name": "Space Invaders",
+      "items": [
+        {
+          "id": "invader_crab",
+          "label": "Crabe",
+          "sub": "envahisseur classique",
+          "color": "#35e07a"
+        },
+        {
+          "id": "invader_squid",
+          "label": "Calamar",
+          "sub": "envahisseur classique",
+          "color": "#3bd6ff"
+        },
+        { "id": "ufo", "label": "Soucoupe", "sub": "vaisseau mystère", "color": "#ff3b3b" },
+        { "id": "rocket", "label": "Fusée", "sub": "", "color": "#e8e9ec" }
       ]
     },
     {
