@@ -31,7 +31,11 @@ pub fn save_text(text: &str) {
             1 << 16,
             0xD8,
         );
-        rom_data::flash_range_program(FLASH_TARGET_OFFSET, &buf, FLASH_SECTOR_SIZE as usize);
+        rom_data::flash_range_program(
+            FLASH_TARGET_OFFSET,
+            buf.as_ptr(),
+            FLASH_SECTOR_SIZE as usize,
+        );
         rom_data::flash_flush_cache();
     });
 }

@@ -30,7 +30,12 @@ use text::{PhraseRotation, ScrollingText};
 pub static IMAGE_DEF: hal::block::ImageDef = hal::block::ImageDef::secure_exe();
 
 // phrases de test
-const PHRASES: &[&str] = &["PICO WALL", "BONJOUR", "COUCOU", "PLOP"];
+const PHRASES: &[&str] = &[
+    "UNE PENSEE POUR MA CHERIE AUDREY ♥",
+    "BONJOUR",
+    "COUCOU",
+    "PLOP",
+];
 #[hal::entry]
 fn main() -> ! {
     let (mut display, mut timer, usb_bus) = init::init();
