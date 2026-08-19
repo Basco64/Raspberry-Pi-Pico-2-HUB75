@@ -188,11 +188,6 @@ impl ScrollingText {
     fn total_width(&self) -> i32 {
         self.text.chars().count() as i32 * ADVANCE
     }
-
-    pub fn full_pass_duration_us(&self) -> u64 {
-        let steps = self.total_width() + 128;
-        (steps.max(1) as u64) * self.step_us()
-    }
 }
 
 impl<PINS: Outputs> crate::animation::Animation<PINS> for ScrollingText {
@@ -210,46 +205,5 @@ impl<PINS: Outputs> crate::animation::Animation<PINS> for ScrollingText {
             draw_glyph(display, c, cursor, oy, self.color);
             cursor += ADVANCE;
         }
-    }
-}
-
-pub struct PhraseRotation {
-    phrases: &'static [&'static str],
-    color: Rgb565,
-    index: usize,
-    current: ScrollingText,
-    elapsed_us: u64,
-}
-
-const PHRASE_DURATION_US: u64 = 5 * 60 * 1_000_000; // 5 minutes
-
-impl PhraseRotation {
-    pub fn new(phrases: &'static [&'static str], color: Rgb565) -> Self {
-        let first = phrases.first().copied().unwrap_or("");
-        Self {
-            phrases,
-            color,
-            index: 0,
-            current: ScrollingText::new(first, color),
-            elapsed_us: 0,
-        }
-    }
-
-    pub fn step_us(&self) -> u64 {
-        self.current.step_us()
-    }
-}
-
-impl<PINS: Outputs> crate::animation::Animation<PINS> for PhraseRotation {
-    fn tick(&mut self, display: &mut Hub75<PINS>) {
-        self.elapsed_us = self.elapsed_us.saturating_add(self.current.step_us());
-
-        if self.elapsed_us >= PHRASE_DURATION_US && !self.phrases.is_empty() {
-            self.index = (self.index + 1) % self.phrases.len();
-            self.current = ScrollingText::new(self.phrases[self.index], self.color);
-            self.elapsed_us = 0;
-        }
-
-        crate::animation::Animation::tick(&mut self.current, display);
     }
 }

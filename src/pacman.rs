@@ -71,8 +71,6 @@ impl Pacman {
     where
         P: Drawing<Rgb565>,
     {
-        let yellow = Rgb565::from((255u8, 220u8, 0u8));
-
         let sprite = if self.mouth_open {
             &PACMAN_OPEN
         } else {
@@ -97,7 +95,7 @@ impl Pacman {
 
                 display.draw(core::iter::once(Pixel(
                     UnsignedCoord::new(px as u32, py as u32),
-                    yellow,
+                    crate::colors::YELLOW,
                 )));
             }
         }
