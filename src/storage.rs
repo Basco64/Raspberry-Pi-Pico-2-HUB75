@@ -1,9 +1,5 @@
 use rp235x_hal::rom_data;
 
-/// Dernier secteur des 2 Mo de flash déclarés dans memory.x (bien loin du
-/// programme, qui commence à l'adresse 0). Le Pico 2 a 4 Mo physiquement,
-/// mais on reste dans la zone que le linker connaît pour être certain de
-/// ne jamais écraser le code.
 const FLASH_TARGET_OFFSET: u32 = 2 * 1024 * 1024 - 4096;
 const FLASH_SECTOR_SIZE: usize = 4096;
 const XIP_BASE: usize = 0x1000_0000;
@@ -12,9 +8,6 @@ const MAGIC: u32 = 0x5049_4357; // "PICW" -- marque que ce secteur contient bien
 const MAX_TEXT_LEN: usize = 60;
 
 /// Sauvegarde le texte en flash (persiste après coupure d'alimentation).
-/// À utiliser rarement (chaque écriture use un peu la durée de vie de la
-/// flash) -- pas à chaque frame évidemment, juste quand l'utilisateur
-/// change le texte défilant.
 pub fn save_text(text: &str) {
     let bytes = text.as_bytes();
     let len = bytes.len().min(MAX_TEXT_LEN);
@@ -40,8 +33,6 @@ pub fn save_text(text: &str) {
     });
 }
 
-/// Relit le texte sauvegardé. Retourne false si rien n'a jamais été
-/// sauvegardé (secteur encore vierge / pas notre magic number).
 pub fn load_text(out: &mut heapless::String<64>) -> bool {
     let ptr = (XIP_BASE + FLASH_TARGET_OFFSET as usize) as *const u8;
 

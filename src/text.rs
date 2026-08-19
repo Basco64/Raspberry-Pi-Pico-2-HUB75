@@ -121,7 +121,7 @@ const fn glyph(c: char) -> [u8; 7] {
         '9' => [
             0b01110, 0b10001, 0b10001, 0b01111, 0b00001, 0b00010, 0b01100,
         ],
-        _ => [0, 0, 0, 0, 0, 0, 0], // espace + tout caractère inconnu -> case vide
+        _ => [0, 0, 0, 0, 0, 0, 0],
     }
 }
 
@@ -142,6 +142,25 @@ fn draw_glyph<PINS: Outputs>(display: &mut Hub75<PINS>, c: char, ox: i32, oy: i3
                 )));
             }
         }
+    }
+}
+
+pub fn draw_line_centered<PINS: Outputs>(
+    display: &mut Hub75<PINS>,
+    text: &str,
+    oy: i32,
+    color: Rgb565,
+) {
+    let count = text.chars().count() as i32;
+    if count == 0 {
+        return;
+    }
+    let width = count * ADVANCE - GLYPH_SPACING;
+    let ox = (64 - width) / 2;
+    let mut cursor = ox;
+    for c in text.chars() {
+        draw_glyph(display, c, cursor, oy, color);
+        cursor += ADVANCE;
     }
 }
 
@@ -169,6 +188,11 @@ impl ScrollingText {
     fn total_width(&self) -> i32 {
         self.text.chars().count() as i32 * ADVANCE
     }
+
+    pub fn full_pass_duration_us(&self) -> u64 {
+        let steps = self.total_width() + 128;
+        (steps.max(1) as u64) * self.step_us()
+    }
 }
 
 impl<PINS: Outputs> crate::animation::Animation<PINS> for ScrollingText {
@@ -189,8 +213,6 @@ impl<PINS: Outputs> crate::animation::Animation<PINS> for ScrollingText {
     }
 }
 
-/// Fait défiler une liste de phrases, en changeant de phrase toutes les
-/// PHRASE_DURATION_US
 pub struct PhraseRotation {
     phrases: &'static [&'static str],
     color: Rgb565,

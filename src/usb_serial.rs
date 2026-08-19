@@ -14,8 +14,6 @@ static USB_SERIAL: Mutex<RefCell<Option<SerialPort<'static, hal::usb::UsbBus>>>>
 static RX_QUEUE: Mutex<RefCell<heapless::Deque<u8, 256>>> =
     Mutex::new(RefCell::new(heapless::Deque::new()));
 
-/// À appeler UNE SEULE FOIS au démarrage, depuis main(), après avoir créé le
-/// bus USB 'static. Met en place le device CDC et active l'interruption.
 pub fn init_usb(bus: &'static UsbBusAllocator<hal::usb::UsbBus>) {
     let serial = SerialPort::new(bus);
     let device = UsbDeviceBuilder::new(bus, UsbVidPid(0x16c0, 0x27dd))
@@ -39,9 +37,6 @@ pub fn init_usb(bus: &'static UsbBusAllocator<hal::usb::UsbBus>) {
     }
 }
 
-/// Gestionnaire d'interruption : déclenché automatiquement par le matériel
-/// à chaque événement USB. Vide les octets reçus dans une file d'attente
-/// que main() peut lire tranquillement, sans jamais bloquer l'USB.
 #[interrupt]
 fn USBCTRL_IRQ() {
     critical_section::with(|cs| {
@@ -62,9 +57,10 @@ fn USBCTRL_IRQ() {
     });
 }
 
-/// À appeler depuis main(), aussi souvent que vous voulez (pas de contrainte
-/// de fréquence puisque la réception se fait désormais en tâche de fond).
-/// Retourne Some(ligne) quand un '\n' a été reçu.
+pub fn read_byte() -> Option<u8> {
+    critical_section::with(|cs| RX_QUEUE.borrow_ref_mut(cs).pop_front())
+}
+
 pub fn poll_line(buf: &mut heapless::String<64>) -> Option<heapless::String<64>> {
     let mut result = None;
 
