@@ -11,7 +11,7 @@ static USB_DEVICE: Mutex<RefCell<Option<UsbDevice<'static, hal::usb::UsbBus>>>> 
     Mutex::new(RefCell::new(None));
 static USB_SERIAL: Mutex<RefCell<Option<SerialPort<'static, hal::usb::UsbBus>>>> =
     Mutex::new(RefCell::new(None));
-static RX_QUEUE: Mutex<RefCell<heapless::Deque<u8, 256>>> =
+static RX_QUEUE: Mutex<RefCell<heapless::Deque<u8, 8192>>> =
     Mutex::new(RefCell::new(heapless::Deque::new()));
 
 pub fn init_usb(bus: &'static UsbBusAllocator<hal::usb::UsbBus>) {
